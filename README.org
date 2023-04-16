@@ -1,0 +1,22 @@
+* The Wired - connect data structures to the Internet!
+** *DONE*
+- Basic datatypes
+  - bool
+  - int8 - 64
+  - uint8 - 64
+  - float32, float64
+  - string
+- Array elements: read access
+- Nested structs
+- Functions
+** *TODO*
+- Arrays
+  - set
+  - create
+  - delete
+- Maps
+- bulk read/write
+  - Structs
+  - Arrays
+- read only values
+- API self-documentation

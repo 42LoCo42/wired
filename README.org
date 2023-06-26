@@ -1,22 +1,48 @@
-* The Wired - connect data structures to the Internet!
-** *DONE*
-- Basic datatypes
-  - bool
-  - int8 - 64
-  - uint8 - 64
-  - float32, float64
+* Endpoints
+- [[http://man.9front.org/5/intro][9P]]
+- [[https://en.wikipedia.org/wiki/HTTP#Request_methods][HTTP]]
+- raw socket
+
+* Interaction
+- CLI, calls into…
+- lib
+
+* Encoding
+- JSON
+- YAML
+  - https://github.com/ghodss/yaml
+  - https://github.com/go-yaml/yaml
+- msgpack
+  - https://github.com/tinylib/msgp
+  - https://github.com/vmihailenco/msgpack
+
+* Types
+- atomic
+  - numeric
   - string
-- Array elements: read access
-- Nested structs
-- Functions
-** *TODO*
-- Arrays
-  - set
-  - create
-  - delete
-- Maps
-- bulk read/write
-  - Structs
-  - Arrays
-- read only values
-- API self-documentation
+- list
+  - array
+  - slice
+- named
+  - struct (fixed names, API structure)
+  - map (dynamic names)
+- https://go.dev/ref/spec#Types
+
+* Methods
+- for variables:
+  - Create/Update
+  - Read
+  - Delete
+
+- for functions:
+  - Execute
+
+- API meta-operations:
+  - List entries
+  - Auth?
+
+* Operation:
+- codegen runs at compile time
+- takes instance of API struct, endpoint driver, encoding
+- creates endpoint, interaction library and CLI
+  (can be selected individually)

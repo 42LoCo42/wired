@@ -1,82 +1,109 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
+	"reflect"
 
-	"github.com/aerogo/aero"
+	"github.com/pkg/errors"
 )
 
-type MyAPI struct {
-	// atomic types
-	Bool   bool
-	Int    int
-	UInt   uint
-	Float  float32
-	String string
-	// sized (u)ints & float64 also supported
+type Example struct {
+	Signed   int32
+	Unsigned uint32
 
-	// structured types
-	Array  [8]int
-	Slice  []int
+	Float  float32
+	Double float64
+
+	String string
+
+	Array [4]string
+	Slice []string
+
+	Map map[int]int
+
 	Struct struct {
-		Inner string
+		Function func(int) int
 	}
 
-	// functions
-	GetSimple   func()
-	GetContext  func(aero.Context) error
-	PostSimple  func(any)
-	PostContext func(aero.Context, any) error
-	Fails       func() error
+	JSON int `json:"json"`
+
+	Foo int `wired.name:"foo"`
+	Bar struct {
+		Baz int
+	} `wired.atomic:""`
+
+	Quux int `wired.ignore:""`
 }
 
 func main() {
-	api := MyAPI{
-		Bool:   false,
-		Int:    -1,
-		UInt:   1,
-		Float:  0.1,
-		String: "abc",
-
-		Array: [8]int{8, 7, 6, 5, 4, 3, 2, 1},
-		Slice: []int{1, 3, 3, 7},
-		Struct: struct{ Inner string }{
-			Inner: "inner",
+	example := Example{
+		Signed:   -42,
+		Unsigned: 1337,
+		Float:    12.34,
+		Double:   1e-10,
+		String:   "Hello, World!",
+		Array: [4]string{
+			"these",
+			"are",
+			"array",
+			"items",
 		},
-
-		GetSimple: func() {
-			log.Print("GetSimple called")
+		Slice: []string{
+			"even",
+			"more",
+			"items",
 		},
-
-		GetContext: func(ctx aero.Context) error {
-			msg := fmt.Sprint(
-				"GetContext called from ",
-				ctx.Request().Internal().RemoteAddr,
-			)
-			log.Print(msg)
-			return ctx.Text(msg)
+		Map: map[int]int{
+			1: 2,
+			2: 4,
+			4: 8,
+			8: 16,
 		},
-
-		PostSimple: func(data any) {
-			log.Print("PostSimple called with ", data)
-		},
-
-		PostContext: func(ctx aero.Context, data any) error {
-			msg := fmt.Sprintf(
-				"PostContext called from %s with %s",
-				ctx.Request().Internal().RemoteAddr,
-				data,
-			)
-			log.Print(msg)
-			return ctx.Text(msg)
-		},
-
-		Fails: func() error {
-			return errors.New("o no")
+		Struct: struct{ Function func(int) int }{
+			Function: func(i int) int {
+				return i * 2
+			},
 		},
 	}
 
-	log.Fatal("Registration error: ", RunTheWired(&api))
+	if err := Generator(&example); err != nil {
+		log.Fatal("generator failed: ", err)
+	}
+}
+
+func Generator(api any) error {
+	val := reflect.ValueOf(api).Elem()
+
+	if val.Kind() != reflect.Struct {
+		return errors.New("API value is not a struct")
+	}
+
+	return RunStruct(val)
+}
+
+func RunStruct(val reflect.Value) error {
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		fieldVal := val.Field(i)
+		fieldFld := typ.Field(i)
+		fieldTyp := fieldVal.Type()
+		fieldKnd := fieldVal.Kind()
+
+		log.Printf(
+			"%s: %s (%s) = %v",
+			fieldFld.Name,
+			fieldTyp,
+			fieldKnd,
+			GetValue(fieldVal),
+		)
+
+		if fieldKnd == reflect.Struct {
+			fmt.Fprintln(log.Writer())
+			RunStruct(fieldVal)
+		}
+	}
+
+	return nil
 }
